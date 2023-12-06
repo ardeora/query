@@ -514,7 +514,7 @@ const ContentView: Component<DevtoolsPanelProps> = (props) => {
     return queryCache().getAll().length
   }, false)
 
-  const queries = createMemo(
+  const queriesData = createMemo(
     on(
       () => [queryCount(), props.localStore.filter, sort(), sortOrder()],
       () => {
@@ -530,7 +530,16 @@ const ContentView: Component<DevtoolsPanelProps> = (props) => {
         const sorted = sortFn()
           ? filtered.sort((a, b) => sortFn()!(a, b) * sortOrder())
           : filtered
-        return sorted
+
+        return sorted.map((query) => ({
+          query,
+          info: {
+            state: query.state,
+            isDisabled: query.isDisabled(),
+            isStale: query.isStale(),
+            observers: query.getObserversCount(),
+          },
+        }))
       },
     ),
   )
@@ -1007,8 +1016,8 @@ const ContentView: Component<DevtoolsPanelProps> = (props) => {
             )}
           >
             <div class="tsqd-queries-container">
-              <Key by={(q) => q.queryHash} each={queries()}>
-                {(query) => <QueryRow query={query()} />}
+              <Key by={(d) => d.query.queryHash} each={queriesData()}>
+                {(data) => <QueryRow query={data().query} info={data().info} />}
               </Key>
             </div>
           </div>
@@ -1039,7 +1048,15 @@ const ContentView: Component<DevtoolsPanelProps> = (props) => {
   )
 }
 
-const QueryRow: Component<{ query: Query }> = (props) => {
+const QueryRow: Component<{
+  query: Query
+  info: {
+    state: QueryState
+    isDisabled: boolean
+    isStale: boolean
+    observers: number
+  }
+}> = (props) => {
   const theme = useTheme()
   const styles = createMemo(() => {
     return theme() === 'dark' ? darkStyles : lightStyles
@@ -1048,39 +1065,13 @@ const QueryRow: Component<{ query: Query }> = (props) => {
   const { colors, alpha } = tokens
   const t = (light: string, dark: string) => (theme() === 'dark' ? dark : light)
 
-  const queryState = createSubscribeToQueryCacheBatcher(
-    (queryCache) =>
-      queryCache().find({
-        queryKey: props.query.queryKey,
-      })?.state,
-  )
+  const queryState = createMemo(() => props.info.state)
 
-  const isDisabled = createSubscribeToQueryCacheBatcher(
-    (queryCache) =>
-      queryCache()
-        .find({
-          queryKey: props.query.queryKey,
-        })
-        ?.isDisabled() ?? false,
-  )
+  const isDisabled = createMemo(() => props.info.isDisabled)
 
-  const isStale = createSubscribeToQueryCacheBatcher(
-    (queryCache) =>
-      queryCache()
-        .find({
-          queryKey: props.query.queryKey,
-        })
-        ?.isStale() ?? false,
-  )
+  const isStale = createMemo(() => props.info.isStale)
 
-  const observers = createSubscribeToQueryCacheBatcher(
-    (queryCache) =>
-      queryCache()
-        .find({
-          queryKey: props.query.queryKey,
-        })
-        ?.getObserversCount() ?? 0,
-  )
+  const observers = createMemo(() => props.info.observers)
 
   const color = createMemo(() =>
     getQueryStatusColor({
