@@ -16,7 +16,7 @@ import { useQueryClient } from './QueryClientProvider'
 import { shouldThrowError } from './utils'
 import { useIsRestoring } from './isRestoring'
 import type { CreateBaseQueryOptions } from './types'
-import type { Accessor } from 'solid-js'
+import type { Accessor, Signal } from 'solid-js'
 import type { QueryClient } from './QueryClient'
 import type {
   InfiniteQueryObserverResult,
@@ -100,6 +100,229 @@ const hydratableObserverResult = <
   } as HydratableQueryState<TDataHydratable, TError>
 }
 
+// class QueryObserverResultInternal<TData, TError> {
+//   data: Signal<QueryObserverResult<TData, TError>['data']>
+//   dataUpdatedAt: Signal<QueryObserverResult<TData, TError>['dataUpdatedAt']>
+//   error: Signal<QueryObserverResult<TData, TError>['error']>
+//   errorUpdatedAt: Signal<QueryObserverResult<TData, TError>['errorUpdatedAt']>
+//   errorUpdateCount: Signal<
+//     QueryObserverResult<TData, TError>['errorUpdateCount']
+//   >
+//   failureCount: Signal<QueryObserverResult<TData, TError>['failureCount']>
+//   failureReason: Signal<QueryObserverResult<TData, TError>['failureReason']>
+//   fetchStatus: Signal<QueryObserverResult<TData, TError>['fetchStatus']>
+//   isError: Signal<QueryObserverResult<TData, TError>['isError']>
+//   isFetched: Signal<QueryObserverResult<TData, TError>['isFetched']>
+//   isFetchedAfterMount: Signal<
+//     QueryObserverResult<TData, TError>['isFetchedAfterMount']
+//   >
+//   isFetching: Signal<QueryObserverResult<TData, TError>['isFetching']>
+//   isLoading: Signal<QueryObserverResult<TData, TError>['isLoading']>
+//   isLoadingError: Signal<QueryObserverResult<TData, TError>['isLoadingError']>
+//   isPaused: Signal<QueryObserverResult<TData, TError>['isPaused']>
+//   isPending: Signal<QueryObserverResult<TData, TError>['isPending']>
+//   isPlaceholderData: Signal<
+//     QueryObserverResult<TData, TError>['isPlaceholderData']
+//   >
+//   isRefetchError: Signal<QueryObserverResult<TData, TError>['isRefetchError']>
+//   isRefetching: Signal<QueryObserverResult<TData, TError>['isRefetching']>
+//   isStale: Signal<QueryObserverResult<TData, TError>['isStale']>
+//   isSuccess: Signal<QueryObserverResult<TData, TError>['isSuccess']>
+//   refetch: Signal<QueryObserverResult<TData, TError>['refetch']>
+//   status: Signal<QueryObserverResult<TData, TError>['status']>
+
+//   value = {
+//     get data() {
+//       return this.data[0]()
+//     },
+//     get dataUpdatedAt() {
+//       return this.dataUpdatedAt[0]()
+//     },
+//   }
+
+//   constructor(result: QueryObserverResult<TData, TError>) {
+//     this.data = createSignal(result.data)
+//     this.dataUpdatedAt = createSignal(result.dataUpdatedAt)
+//     this.error = createSignal(result.error)
+//     this.errorUpdatedAt = createSignal(result.errorUpdatedAt)
+//     this.errorUpdateCount = createSignal(result.errorUpdateCount)
+//     this.failureCount = createSignal(result.failureCount)
+//     this.failureReason = createSignal(result.failureReason)
+//     this.fetchStatus = createSignal(result.fetchStatus)
+//     this.isError = createSignal(result.isError)
+//     this.isFetched = createSignal(result.isFetched)
+//     this.isFetchedAfterMount = createSignal(result.isFetchedAfterMount)
+//     this.isFetching = createSignal(result.isFetching)
+//     this.isLoading = createSignal(result.isLoading)
+//     this.isLoadingError = createSignal(result.isLoadingError)
+//     this.isPaused = createSignal(result.isPaused)
+//     this.isPending = createSignal(result.isPending)
+//     this.isPlaceholderData = createSignal(result.isPlaceholderData)
+//     this.isRefetchError = createSignal(result.isRefetchError)
+//     this.isRefetching = createSignal(result.isRefetching)
+//     this.isStale = createSignal(result.isStale)
+//     this.isSuccess = createSignal(result.isSuccess)
+//     this.refetch = createSignal(result.refetch)
+//     this.status = createSignal(result.status)
+//   }
+
+//   getValue() {
+//     return this.value
+//   }
+//   // get data() {
+//   //   return this.#data[0]()
+//   // }
+
+//   // get dataUpdatedAt() {
+//   //   return this.#dataUpdatedAt[0]()
+//   // }
+
+//   // get error() {
+//   //   return this.#error[0]()
+//   // }
+
+//   // get errorUpdatedAt() {
+//   //   return this.#errorUpdatedAt[0]()
+//   // }
+
+//   // get errorUpdateCount() {
+//   //   return this.#errorUpdateCount[0]()
+//   // }
+// }
+
+function createQueryResultInternal<TData, TError>(
+  result: QueryObserverResult<TData, TError>,
+) {
+  const data = createSignal(result.data)
+  const dataUpdatedAt = createSignal(result.dataUpdatedAt)
+  const error = createSignal(result.error)
+  const errorUpdatedAt = createSignal(result.errorUpdatedAt)
+  const errorUpdateCount = createSignal(result.errorUpdateCount)
+  const failureCount = createSignal(result.failureCount)
+  const failureReason = createSignal(result.failureReason)
+  const fetchStatus = createSignal(result.fetchStatus)
+  const isError = createSignal(result.isError)
+  const isFetched = createSignal(result.isFetched)
+  const isFetchedAfterMount = createSignal(result.isFetchedAfterMount)
+  const isFetching = createSignal(result.isFetching)
+  const isLoading = createSignal(result.isLoading)
+  const isLoadingError = createSignal(result.isLoadingError)
+  const isPaused = createSignal(result.isPaused)
+  const isPending = createSignal(result.isPending)
+  const isPlaceholderData = createSignal(result.isPlaceholderData)
+  const isRefetchError = createSignal(result.isRefetchError)
+  const isRefetching = createSignal(result.isRefetching)
+  const isStale = createSignal(result.isStale)
+  const isSuccess = createSignal(result.isSuccess)
+  const refetch = createSignal(result.refetch)
+  const status = createSignal(result.status)
+
+  const value = {
+    get data() {
+      return data[0]()
+    },
+    get dataUpdatedAt() {
+      return dataUpdatedAt[0]()
+    },
+    get error() {
+      return error[0]()
+    },
+    get errorUpdatedAt() {
+      return errorUpdatedAt[0]()
+    },
+    get errorUpdateCount() {
+      return errorUpdateCount[0]()
+    },
+    get failureCount() {
+      return failureCount[0]()
+    },
+    get failureReason() {
+      return failureReason[0]()
+    },
+    get fetchStatus() {
+      return fetchStatus[0]()
+    },
+    get isError() {
+      return isError[0]()
+    },
+    get isFetched() {
+      return isFetched[0]()
+    },
+    get isFetchedAfterMount() {
+      return isFetchedAfterMount[0]()
+    },
+    get isFetching() {
+      return isFetching[0]()
+    },
+    get isLoading() {
+      return isLoading[0]()
+    },
+    get isLoadingError() {
+      return isLoadingError[0]()
+    },
+    get isPaused() {
+      return isPaused[0]()
+    },
+    get isPending() {
+      return isPending[0]()
+    },
+    get isPlaceholderData() {
+      return isPlaceholderData[0]()
+    },
+    get isRefetchError() {
+      return isRefetchError[0]()
+    },
+    get isRefetching() {
+      return isRefetching[0]()
+    },
+    get isStale() {
+      return isStale[0]()
+    },
+    get isSuccess() {
+      return isSuccess[0]()
+    },
+    get refetch() {
+      return refetch[0]()
+    },
+    get status() {
+      return status[0]()
+    },
+  }
+
+  const setValue = (newResult: QueryObserverResult<TData, TError>) => {
+    data[1](() => newResult.data)
+    dataUpdatedAt[1](newResult.dataUpdatedAt)
+    error[1](() => newResult.error)
+    errorUpdatedAt[1](newResult.errorUpdatedAt)
+    errorUpdateCount[1](newResult.errorUpdateCount)
+    failureCount[1](newResult.failureCount)
+    failureReason[1](() => newResult.failureReason)
+    fetchStatus[1](newResult.fetchStatus)
+    isError[1](newResult.isError)
+    isFetched[1](newResult.isFetched)
+    isFetchedAfterMount[1](newResult.isFetchedAfterMount)
+    isFetching[1](newResult.isFetching)
+    isLoading[1](newResult.isLoading)
+    isLoadingError[1](newResult.isLoadingError)
+    isPaused[1](newResult.isPaused)
+    isPending[1](newResult.isPending)
+    isPlaceholderData[1](newResult.isPlaceholderData)
+    isRefetchError[1](newResult.isRefetchError)
+    isRefetching[1](newResult.isRefetching)
+    isStale[1](newResult.isStale)
+    isSuccess[1](newResult.isSuccess)
+    refetch[1](() => newResult.refetch)
+    status[1](newResult.status)
+  }
+
+  return {
+    getValue() {
+      return value
+    },
+    setValue,
+  }
+}
+
 // Base Query Function that is used to create the query.
 export function createBaseQuery<
   TQueryFnData,
@@ -142,6 +365,10 @@ export function createBaseQuery<
     observer().getOptimisticResult(defaultedOptions()),
   )
 
+  const _state = createQueryResultInternal(
+    observer().getOptimisticResult(defaultedOptions()),
+  )
+
   const createServerSubscriber = (
     resolve: (
       data: ResourceData | PromiseLike<ResourceData | undefined> | undefined,
@@ -180,6 +407,7 @@ export function createBaseQuery<
               reconcileOptions === undefined ? false : reconcileOptions,
             )
           })
+          _state.setValue(result)
           mutate(state)
         } else {
           setState((store) => {
@@ -189,6 +417,7 @@ export function createBaseQuery<
               reconcileOptions === undefined ? false : reconcileOptions,
             )
           })
+          _state.setValue(result)
           refetch()
         }
       })()
@@ -266,6 +495,7 @@ export function createBaseQuery<
         // wonky behavior with observer subscriptions
         observer().setOptions(newOptions)
         setState(observer().getOptimisticResult(newOptions))
+        _state.setValue(observer().getOptimisticResult(newOptions))
         unsubscribe = createClientSubscriber()
       },
     },
@@ -307,6 +537,7 @@ export function createBaseQuery<
       ([obs, opts]) => {
         obs.setOptions(opts)
         setState(obs.getOptimisticResult(opts))
+        _state.setValue(obs.getOptimisticResult(opts))
       },
       { defer: true },
     ),
