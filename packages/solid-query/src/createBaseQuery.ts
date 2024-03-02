@@ -216,6 +216,7 @@ function createQueryResultInternal<TData, TError>(
   const isSuccess = createSignal(result.isSuccess)
   const refetch = createSignal(result.refetch)
   const status = createSignal(result.status)
+  const isInitialLoading = createSignal(result.isInitialLoading)
 
   const value = {
     get data() {
@@ -287,6 +288,9 @@ function createQueryResultInternal<TData, TError>(
     get status() {
       return status[0]()
     },
+    get isInitialLoading() {
+      return isInitialLoading[0]()
+    },
   }
 
   const setValue = (newResult: QueryObserverResult<TData, TError>) => {
@@ -313,10 +317,12 @@ function createQueryResultInternal<TData, TError>(
     isSuccess[1](newResult.isSuccess)
     refetch[1](() => newResult.refetch)
     status[1](newResult.status)
+    isInitialLoading[1](newResult.isInitialLoading)
   }
 
   return {
-    getValue() {
+    getValue(): QueryObserverResult<TData, TError> {
+      // @ts-expect-error - This is a valid return value
       return value
     },
     setValue,
@@ -361,11 +367,7 @@ export function createBaseQuery<
     new Observer(client(), defaultedOptions()),
   )
 
-  const [state, setState] = createStore<QueryObserverResult<TData, TError>>(
-    observer().getOptimisticResult(defaultedOptions()),
-  )
-
-  const _state = createQueryResultInternal(
+  const state = createQueryResultInternal(
     observer().getOptimisticResult(defaultedOptions()),
   )
 
@@ -400,24 +402,10 @@ export function createBaseQuery<
         // If the query has data we don't suspend but instead mutate the resource
         // This could happen when placeholderData/initialData is defined
         if (queryResource()?.data && result.data && !queryResource.loading) {
-          setState((store) => {
-            return reconcileFn(
-              store,
-              result,
-              reconcileOptions === undefined ? false : reconcileOptions,
-            )
-          })
-          _state.setValue(result)
-          mutate(state)
+          state.setValue(result)
+          mutate(state.getValue())
         } else {
-          setState((store) => {
-            return reconcileFn(
-              store,
-              result,
-              reconcileOptions === undefined ? false : reconcileOptions,
-            )
-          })
-          _state.setValue(result)
+          state.setValue(result)
           refetch()
         }
       })()
@@ -442,14 +430,14 @@ export function createBaseQuery<
         }
         obs.updateResult()
 
-        if (!state.isLoading) {
+        if (!state.getValue().isLoading) {
           const query = obs.getCurrentQuery()
-          resolve(hydratableObserverResult(query, state))
+          resolve(hydratableObserverResult(query, state.getValue()))
         }
       })
     },
     {
-      initialValue: state,
+      initialValue: state.getValue(),
 
       // If initialData is provided, we resolve the resource immediately
       get ssrLoadFrom() {
@@ -494,8 +482,7 @@ export function createBaseQuery<
         // Setting the options as an immutable object to prevent
         // wonky behavior with observer subscriptions
         observer().setOptions(newOptions)
-        setState(observer().getOptimisticResult(newOptions))
-        _state.setValue(observer().getOptimisticResult(newOptions))
+        state.setValue(observer().getOptimisticResult(newOptions))
         unsubscribe = createClientSubscriber()
       },
     },
@@ -536,8 +523,7 @@ export function createBaseQuery<
       [observer, defaultedOptions],
       ([obs, opts]) => {
         obs.setOptions(opts)
-        setState(obs.getOptimisticResult(opts))
-        _state.setValue(obs.getOptimisticResult(opts))
+        state.setValue(obs.getOptimisticResult(opts))
       },
       { defer: true },
     ),
@@ -545,19 +531,19 @@ export function createBaseQuery<
 
   createComputed(
     on(
-      () => state.status,
+      () => state.getValue().status,
       () => {
         const obs = observer()
         if (
-          state.isError &&
-          !state.isFetching &&
+          state.getValue().isError &&
+          !state.getValue().isFetching &&
           !isRestoring() &&
           shouldThrowError(obs.options.throwOnError, [
-            state.error,
+            state.getValue().error!,
             obs.getCurrentQuery(),
           ])
         ) {
-          throw state.error
+          throw state.getValue().error
         }
       },
     ),
@@ -573,5 +559,5 @@ export function createBaseQuery<
     },
   }
 
-  return new Proxy(state, handler)
+  return new Proxy(state.getValue(), handler)
 }
