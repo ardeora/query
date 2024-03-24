@@ -50,7 +50,9 @@
     "test:lib:dev": "pnpm run test:lib --watch",
     "test:build": "publint --strict",
     "build": "tsup",
-    "build:watch": "tsup --watch"
+    "build:watch": "tsup --watch",
+    "yolo": "nyc report --reporter html --reporter text --reporter clover -t coverage --report-dir coverage",
+    "help-nyc": "nyc -h"
   },
   "files": [
     "build",
@@ -61,6 +63,7 @@
     "solid-js": "^1.8.14"
   },
   "devDependencies": {
+    "nyc": "^15.1.0",
     "tsup-preset-solid": "^2.2.0",
     "vite-plugin-solid": "^2.9.1"
   },
