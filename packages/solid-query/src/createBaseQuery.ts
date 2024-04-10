@@ -27,22 +27,22 @@ import type {
   QueryState,
 } from '@tanstack/query-core'
 
-function reconcileFn<TData, TError>(
-  store: QueryObserverResult<TData, TError>,
-  result: QueryObserverResult<TData, TError>,
-  reconcileOption:
-    | string
-    | false
-    | ((oldData: TData | undefined, newData: TData) => TData),
-): QueryObserverResult<TData, TError> {
-  if (reconcileOption === false) return result
-  if (typeof reconcileOption === 'function') {
-    const newData = reconcileOption(store.data, result.data as TData)
-    return { ...result, data: newData } as typeof result
-  }
-  const newData = reconcile(result.data, { key: reconcileOption })(store.data)
-  return { ...result, data: newData } as typeof result
-}
+// function reconcileFn<TData, TError>(
+//   store: QueryObserverResult<TData, TError>,
+//   result: QueryObserverResult<TData, TError>,
+//   reconcileOption:
+//     | string
+//     | false
+//     | ((oldData: TData | undefined, newData: TData) => TData),
+// ): QueryObserverResult<TData, TError> {
+//   if (reconcileOption === false) return result
+//   if (typeof reconcileOption === 'function') {
+//     const newData = reconcileOption(store.data, result.data as TData)
+//     return { ...result, data: newData } as typeof result
+//   }
+//   const newData = reconcile(result.data, { key: reconcileOption })(store.data)
+//   return { ...result, data: newData } as typeof result
+// }
 
 type HydratableQueryState<TData, TError> = QueryObserverResult<TData, TError> &
   QueryState<TData, TError> &
@@ -144,6 +144,11 @@ export function createBaseQuery<
     new Observer(client(), defaultedOptions()),
   )
 
+  const [observerData, setObserverData] = createStore<{
+    data: TData | undefined
+  }>({
+    data: undefined,
+  })
   const [state, setState] = createStore<QueryObserverResult<TData, TError>>(
     observer().getOptimisticResult(defaultedOptions()),
   )
@@ -181,29 +186,22 @@ export function createBaseQuery<
     const obs = observer()
     return obs.subscribe((result) => {
       notifyManager.batchCalls(() => {
-        // @ts-expect-error - This will error because the reconcile option does not
-        // exist on the query-core QueryObserverResult type
-        const reconcileOptions = obs.options.reconcile
-
         // If the query has data we don't suspend but instead mutate the resource
         // This could happen when placeholderData/initialData is defined
         if (queryResource()?.data && result.data && !queryResource.loading) {
-          setState((store) => {
-            return reconcileFn(
-              store,
-              result,
-              reconcileOptions === undefined ? false : reconcileOptions,
-            )
-          })
+          setState(result)
+          setObserverData('data', reconcile(result.data))
           mutate(state)
         } else {
-          setState((store) => {
-            return reconcileFn(
-              store,
-              result,
-              reconcileOptions === undefined ? false : reconcileOptions,
-            )
-          })
+          setState(result)
+          if (observerData.data) {
+            setObserverData('data', reconcile(result.data))
+          } else {
+            const clone = structuredClone(result.data)
+            setObserverData({
+              data: clone,
+            })
+          }
           refetch()
         }
       })()
@@ -362,6 +360,9 @@ export function createBaseQuery<
       prop: keyof QueryObserverResult<TData, TError>,
     ): any {
       const val = queryResource()?.[prop]
+      if (prop === 'data' && observerData.data !== undefined) {
+        return observerData.data
+      }
       return val !== undefined ? val : Reflect.get(target, prop)
     },
   }
