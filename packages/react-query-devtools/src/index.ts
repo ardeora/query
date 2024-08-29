@@ -8,3 +8,10 @@ export const ReactQueryDevtools: (typeof devtools)['ReactQueryDevtools'] =
         return null
       }
     : devtools.ReactQueryDevtools
+
+export const ReactQueryDevtoolsPanel: (typeof devtools)['ReactQueryDevtoolsPanel'] =
+  process.env.NODE_ENV !== 'development'
+    ? function () {
+        return null
+      }
+    : devtools.ReactQueryDevtoolsPanel
