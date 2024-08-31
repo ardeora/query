@@ -89,7 +89,7 @@ interface DevtoolsPanelProps {
 interface ContentViewProps {
   localStore: StorageObject<string>
   setLocalStore: StorageSetter<string, unknown>
-  panel_view?: boolean
+  showPanelViewOnly?: boolean
   onClose?: () => unknown
 }
 
@@ -751,7 +751,7 @@ export const ContentView: Component<ContentViewProps> = (props) => {
             <button
               class={cx(styles().logo, 'tsqd-text-logo-container')}
               onClick={() => {
-                if (!pip().pipWindow && !props.panel_view) {
+                if (!pip().pipWindow && !props.showPanelViewOnly) {
                   props.setLocalStore('open', 'false')
                   return
                 }
@@ -1022,7 +1022,7 @@ export const ContentView: Component<ContentViewProps> = (props) => {
                   >
                     Settings
                   </div>
-                  <Show when={!props.panel_view}>
+                  <Show when={!props.showPanelViewOnly}>
                     <DropdownMenu.Sub overlap gutter={8} shift={-4}>
                       <DropdownMenu.SubTrigger
                         class={cx(

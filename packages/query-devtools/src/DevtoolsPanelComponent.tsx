@@ -35,7 +35,7 @@ const DevtoolsPanelComponent: DevtoolsComponentType = (props) => {
               localStore={localStore}
               setLocalStore={setLocalStore}
               onClose={props.onClose}
-              panel_view
+              showPanelViewOnly
             />
           </ParentPanel>
         </ThemeContext.Provider>

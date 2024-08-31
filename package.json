@@ -28,8 +28,7 @@
     "prettier": "prettier --ignore-unknown '**/*'",
     "prettier:write": "pnpm run prettier --write",
     "docs:generate": "node scripts/generateDocs.js",
-    "cipublish": "node scripts/publish.js",
-    "clear-cache": "nx clear-cache"
+    "cipublish": "node scripts/publish.js"
   },
   "nx": {
     "includedScripts": [
